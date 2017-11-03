@@ -10,6 +10,7 @@ from torch.utils import data
 
 
 class CamvidLoader(data.Dataset):
+    # label scale is 2 in ENet. 
     def __init__(self, root, split="train", is_transform=False, img_size=None, label_scale=1):
         self.root = root
         self.split = split
@@ -59,6 +60,7 @@ class CamvidLoader(data.Dataset):
         lbl = torch.from_numpy(lbl).long()
         return img, lbl
 
+    #from predict image to segmap. 
     def decode_segmap(self, temp, plot=False):
         Sky = [128, 128, 128]
         Building = [128, 0, 0]
