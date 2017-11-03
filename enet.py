@@ -81,6 +81,7 @@ class BottleNeck(nn.Module):
         self.upsampling = upsampling
         self.use_relu = use_relu
 
+        # internal scale is set to 4, but this is not mentioned in the original paper. 
         internal = output_channels // 4
         input_stride = 2 if downsampling else 1
         # First projection with 1x1 kernel (2x2 for downsampling)
