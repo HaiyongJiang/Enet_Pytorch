@@ -136,6 +136,7 @@ class BottleNeck(nn.Module):
         if self.downsampling:
             main, indices = self.pool(input)
             if (self.output_channels != self.input_channels):
+                # note that bottleneck2.0 holds different channels in the input/output. 
                 pad = Variable(torch.Tensor(input_shape[0],
                                self.output_channels - self.input_channels,
                                input_shape[2] // 2,
