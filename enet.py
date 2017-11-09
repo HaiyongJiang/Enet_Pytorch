@@ -23,14 +23,13 @@ class InitialBlock(nn.Module):
     def __init__(self):
         super(InitialBlock, self).__init__()
         self.conv = nn.Conv2d(3, 13, (3, 3), stride=2, padding=1)
-        self.batch_norm = nn.BatchNorm2d(13, 1e-3)
-        self.prelu = nn.PReLU(13)
+        self.batch_norm = nn.BatchNorm2d(16, 1e-3)
+        self.prelu = nn.PReLU(16)
         self.pool = nn.MaxPool2d(2, stride=2)
 
     def forward(self, input):
-        output = torch.cat([
-            self.prelu(self.batch_norm(self.conv(input))), self.pool(input)
-        ], 1)
+        output = self.prelu(self.batch_norm(torch.cat([
+            self.conv(input), self.pool(input)], 1)))
         return output
 
 
@@ -121,11 +120,12 @@ class BottleNeck(nn.Module):
         # Final projection with 1x1 kernel
         conv1x1_2 = nn.Conv2d(internal, output_channels, 1, bias=False)
         batch_norm2 = nn.BatchNorm2d(output_channels, 1e-3)
-        prelu2 = self._prelu(output_channels, use_relu)
-        self.block1x1_2 = nn.Sequential(conv1x1_2, batch_norm2, prelu2)
-
         # regularlize
         self.dropout = nn.Dropout2d(regularlizer_prob)
+        self.block1x1_2 = nn.Sequential(conv1x1_2, batch_norm2, self.dropout)
+
+
+        self.sum_prelu = self._prelu(output_channels, use_relu)
 
     def _prelu(self, channels, use_relu):
         return (nn.PReLU(channels) if use_relu is False else nn.ReLU())
@@ -151,7 +151,7 @@ class BottleNeck(nn.Module):
         other_net = nn.Sequential(self.block1x1_1, self.middle_block,
                                   self.block1x1_2)
         other = other_net(input)
-        output = F.relu(main + other)
+        output = self.sum_prelu(main + other)
         if (self.downsampling):
             return output, indices
         return output
